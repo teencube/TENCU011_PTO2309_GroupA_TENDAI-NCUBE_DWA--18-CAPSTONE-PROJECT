@@ -24,7 +24,7 @@ import PageviewIcon from '@mui/icons-material/Pageview';
 import LoginIcon from '@mui/icons-material/Login'; 
 import PersonAddIcon from '@mui/icons-material/PersonAdd'; 
 import PersonIcon from '@mui/icons-material/Person'; 
-import SearchOffRounded from '@mui/icons-material/SearchOffRounded';
+
 
 const Navbar: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false); 
@@ -41,8 +41,7 @@ const Navbar: React.FC = () => {
   const pages = [
     { text: 'Home', path: '/HomePage', icon: <HomeIcon /> },
     { text: 'Favorites', path: '/FavoritesPage', icon: <FavoriteIcon /> },
-    { text: 'PodShows', path: '/id/:id', icon: <PageviewIcon /> }, 
-    { text: 'Search', path: '/SearchPage', icon: <SearchOffRounded /> },
+    { text: 'PodShows', path: '/shows/:id', icon: <PageviewIcon /> }, 
     { text: 'Login', path: '/Login', icon: <LoginIcon /> },
     { text: 'Sign Up', path: '/Signup', icon: <PersonAddIcon /> },
     { text: 'Profile', path: '/UserProfilePage', icon: <PersonIcon /> },

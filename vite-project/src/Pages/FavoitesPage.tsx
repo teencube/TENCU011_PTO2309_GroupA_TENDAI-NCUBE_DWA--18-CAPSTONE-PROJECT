@@ -1,70 +1,54 @@
-import React, { useState, useEffect } from 'react'; 
-import PreviewCard from '../Components/PreviewCard'; 
-import useAuth from '../Components/useAuth'; 
-import supabase from '../SupabaseClient'; 
-import { Button, Snackbar, CircularProgress } from '@mui/material'; 
-import styled from 'styled-components'; 
-import { Link } from 'react-router-dom'; 
+import React, { useState, useEffect } from 'react';
+import PreviewCard from '../Components/PreviewCard';
+import useAuth from '../Components/useAuth';
+import supabase from '../SupabaseClient';
+import { Button, Snackbar, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 interface Show {
-  id: string; 
-  image: string; 
-  title: string; 
-  description: string; 
-  updated: string; 
-  genres: string[]; 
+  id: string;
+  image: string;
+  title: string;
+  description: string;
+  updated: string;
+  genres: string[];
+  note?: string; // Optional field for notes
 }
 
 const Container = styled.div`
   padding: 20px;
   font-family: Arial, sans-serif;
-  background-color: #f4f4f9; 
-  min-height: 100vh; 
+  background-color: #f4f4f9;
+  min-height: 100vh;
 `;
 
 const Title = styled.h1`
   text-align: center;
-  color: #333; 
+  color: #333;
   margin-bottom: 20px;
 `;
 
 const ShowGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-  gap: 20px; 
-`;
-
-const ActionButton = styled(Button)`
-  position: absolute; 
-  top: 10px;
-  right: 10px;
-  background-color: #e91e63; 
-  color: white;
-  &:hover {
-    background-color: #c2185b; 
-  }
-`;
-
-const ShareButton = styled(ActionButton)`
-  top: 40px; 
-  background-color: #2196f3; 
-  &:hover {
-    background-color: #1976d2; 
-  }
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
 `;
 
 const EmptyFavoritesMessage = styled.p`
   text-align: center;
-  color: #666; 
+  color: #666;
 `;
 
 const FavoritesPage: React.FC = () => {
-  const { user } = useAuth(); 
-  const [favorites, setFavorites] = useState<Show[]>([]); 
-  const [loading, setLoading] = useState<boolean>(true); 
+  const { user } = useAuth();
+  const [favorites, setFavorites] = useState<Show[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false); 
-  const [snackbarMessage, setSnackbarMessage] = useState(''); 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+  const [selectedShow, setSelectedShow] = useState<Show | null>(null);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -73,78 +57,85 @@ const FavoritesPage: React.FC = () => {
           const { data, error } = await supabase
             .from('favorites')
             .select('*')
-            .eq('user_id', user.id); // Ensure this matches your database
+            .eq('user_id', user.id);
 
           if (error) throw new Error(error.message);
 
-          const updatedData: Show[] = data.map(show => ({
-            id: show.id, // Make sure these keys match your database
-            image: show.image, 
-            title: show.title, 
-            description: show.description, 
-            updated: show.updated || new Date().toISOString(), 
-            genres: show.genres, // Ensure genres is included if present in your database
+          const updatedData: Show[] = data.map((show) => ({
+            id: show.show_id,
+            image: show.image,
+            title: show.title,
+            description: show.description,
+            updated: show.updated || new Date().toISOString(),
+            genres: show.genres || [],
+            note: show.note || '' // Add note field
           }));
-          
-          setFavorites(updatedData); 
+
+          setFavorites(updatedData);
         } catch (error) {
-          setError('Error fetching favorites. Please try again later.'); 
-          console.error('Error fetching favorites:', error); 
+          setError('Error fetching favorites. Please try again later.');
+          console.error('Error fetching favorites:', error);
         } finally {
-          setLoading(false); 
+          setLoading(false);
         }
       } else {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
-    fetchFavorites(); 
-  }, [user]); 
+    fetchFavorites();
+  }, [user]);
 
-  const handleDeleteFavorite = async (showId: string) => {
+  const handleAddToFavorites = async (show: Show) => {
     if (!user?.id) {
-      alert('You must be logged in to delete favorites.'); 
+      alert('You must be logged in to add favorites.');
       return;
     }
 
     try {
       const { error } = await supabase
         .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('show_id', showId); // Make sure 'show_id' matches your database
+        .insert([{ user_id: user.id, show_id: show.id, image: show.image, title: show.title, description: show.description, genres: show.genres }]);
 
-      if (error) {
-        throw new Error(error.message); 
-      }
+      if (error) throw new Error(error.message);
 
-      const updatedFavorites = favorites.filter(show => show.id !== showId);
-      setFavorites(updatedFavorites);
-      setSnackbarMessage('Favorite removed successfully.'); 
-      setSnackbarOpen(true); 
+      setFavorites((prevFavorites) => [...prevFavorites, show]);
+      setSnackbarMessage('Show added to favorites successfully.');
+      setSnackbarOpen(true);
     } catch (error) {
-      console.error('Error deleting favorite:', error); 
-      setSnackbarMessage('Error removing favorite. Please try again later.'); 
-      setSnackbarOpen(true); 
+      console.error('Error adding favorite:', error);
+      setSnackbarMessage('Error adding favorite. Please try again later.');
+      setSnackbarOpen(true);
+    } finally {
+      setConfirmationDialogOpen(false);
+      setSelectedShow(null);
     }
-  };
-
-  const handleShareFavorite = (show: Show) => {
-    const url = `https://podcast-api.netlify.app/shows/${show.id}`; 
-    navigator.clipboard.writeText(url); 
-    setSnackbarMessage('URL copied to clipboard: ' + url); 
-    setSnackbarOpen(true); 
   };
 
   const handleSnackbarClose = (_event: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
-      return; 
+      return;
     }
-    setSnackbarOpen(false); 
+    setSnackbarOpen(false);
+  };
+
+  const handleShowConfirmationDialog = (show: Show) => {
+    setSelectedShow(show);
+    setConfirmationDialogOpen(true);
+  };
+
+  const handleCloseConfirmationDialog = () => {
+    setConfirmationDialogOpen(false);
+    setSelectedShow(null);
   };
 
   if (!user) {
-    return <div>Please log in to view your favorites.</div>;
+    return (
+      <Container>
+        <Title>Please log in to view your favorites.</Title>
+        <Link to="/">Go back to Home</Link>
+      </Container>
+    );
   }
 
   if (loading) {
@@ -157,23 +148,23 @@ const FavoritesPage: React.FC = () => {
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <Container>
+        <Title>Error: {error}</Title>
+        <Link to="/">Go back to Home</Link>
+      </Container>
+    );
   }
 
   return (
     <Container>
-      <Title>Favorites</Title>
+      <Title>Your Favorites</Title>
       <ShowGrid>
         {favorites.length > 0 ? (
-          favorites.map(show => (
-            <div key={show.id} style={{ position: 'relative' }}>
-              <PreviewCard 
-                show={show} 
-                onDelete={handleDeleteFavorite} 
-                onShare={handleShareFavorite} 
-              />
-              <ActionButton onClick={() => handleDeleteFavorite(show.id)} aria-label={`Delete ${show.title}`}>Delete</ActionButton>
-              <ShareButton onClick={() => handleShareFavorite(show)} aria-label={`Share ${show.title}`}>Share</ShareButton>
+          favorites.map((show) => (
+            <div key={show.id}>
+              <PreviewCard show={show} />
+              <Button onClick={() => handleShowConfirmationDialog(show)}>Add to Favorites</Button>
             </div>
           ))
         ) : (
@@ -182,11 +173,29 @@ const FavoritesPage: React.FC = () => {
           </EmptyFavoritesMessage>
         )}
       </ShowGrid>
+
+      <Dialog open={confirmationDialogOpen} onClose={handleCloseConfirmationDialog}>
+        <DialogTitle>Confirm Add to Favorites</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Do you want to add "{selectedShow?.title}" to your favorites?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmationDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={() => selectedShow && handleAddToFavorites(selectedShow)} color="primary">
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
-        open={snackbarOpen} 
-        autoHideDuration={6000} 
-        onClose={handleSnackbarClose} 
-        message={snackbarMessage} 
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
       />
     </Container>
   );

@@ -1,10 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
-import { Container, Grid, CircularProgress, TextField, Snackbar, Button } from '@mui/material';
+import { Container, Grid, CircularProgress, TextField, Button, Snackbar } from '@mui/material';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import styled from 'styled-components';
 import PreviewCard from '../Components/PreviewCard';
-import useAuth from '../Components/useAuth';
-import supabase from '../SupabaseClient';
 
 const StyledContainer = styled(Container)`
   padding: 20px;
@@ -19,7 +18,7 @@ interface Show {
   title: string;
   description: string;
   updated: string;
-  genres: number[]; // Keep genres as numbers (IDs) for the API response
+  genres: number[];
 }
 
 interface ApiShow {
@@ -31,7 +30,6 @@ interface ApiShow {
   genres: number[];
 }
 
-// Genre mapping object
 const genreMapping: Record<number, string> = {
   1: 'Personal Growth',
   2: 'True Crime and Investigative Journalism',
@@ -45,20 +43,22 @@ const genreMapping: Record<number, string> = {
 };
 
 const HomePage: React.FC = () => {
-  const { user } = useAuth();
   const [shows, setShows] = useState<Show[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("asc");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  // Fetch shows from the API
+  const navigate = useNavigate(); // Initialize useNavigate
+
   useEffect(() => {
     const fetchShows = async () => {
       try {
         const response = await fetch('https://podcast-api.netlify.app/shows');
+        if (!response.ok) throw new Error('Network response was not ok');
         const data: ApiShow[] = await response.json();
         const formattedData: Show[] = data.map((show) => ({
           id: show.id,
@@ -66,14 +66,12 @@ const HomePage: React.FC = () => {
           title: show.title,
           description: show.description,
           updated: show.updated,
-          genres: show.genres, // Retain IDs from the API
+          genres: show.genres,
         }));
-
         setShows(formattedData);
       } catch (error) {
+        setError('Failed to load shows. Please try again later.');
         console.error('Error fetching shows:', error);
-        setSnackbarMessage('Failed to fetch shows.');
-        setSnackbarOpen(true);
       } finally {
         setLoading(false);
       }
@@ -85,74 +83,56 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 300); // 300ms delay
-
+    }, 300);
     return () => {
       clearTimeout(handler);
     };
   }, [searchTerm]);
 
-  const handleDelete = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('show_id', id)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-
-      setShows((prevShows) => prevShows.filter((show) => show.id !== id));
-      setSnackbarMessage('Show removed from favorites.');
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error('Error deleting show:', error);
-      setSnackbarMessage('Failed to remove show.');
-      setSnackbarOpen(true);
-    }
-  };
-
-  const handleShare = (show: Show) => {
-    setSnackbarMessage(`Shared ${show.title}!`);
-    setSnackbarOpen(true);
-  };
-
-  const handleSnackbarClose = (
-    _event: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === 'clickaway') return;
-    setSnackbarOpen(false);
-  };
-
-  // Filter shows by debounced search term (title or genre)
   const filteredShows = shows.filter((show) => {
-    // Check if title matches search term
     const titleMatch = show.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-    // Check if any genre matches the search term
     const genreMatch = show.genres.some(genreId =>
       genreMapping[genreId]?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-    return titleMatch || genreMatch;
+
+    const letterMatch = selectedLetter ? show.title[0].toLowerCase() === selectedLetter.toLowerCase() : true;
+
+    return (titleMatch || genreMatch) && letterMatch;
   });
 
-  // Sort shows based on the selected order
   const sortedShows = filteredShows.sort((a, b) => {
     const titleA = a.title.toLowerCase();
     const titleB = b.title.toLowerCase();
     return sortOrder === "asc" ? (titleA < titleB ? -1 : titleA > titleB ? 1 : 0) : (titleA > titleB ? -1 : titleA < titleB ? 1 : 0);
   });
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  const handleShowClick = (id: string) => {
+    navigate(`/shows/${id}`); // Redirect to the show details page
+  };
+
   if (loading) {
     return (
       <StyledContainer>
         <CircularProgress />
+        <p>Loading shows...</p>
       </StyledContainer>
     );
   }
 
   return (
     <StyledContainer>
+      {error && (
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleSnackbarClose}
+          message={error}
+        />
+      )}
       <TextField
         fullWidth
         variant="outlined"
@@ -161,22 +141,40 @@ const HomePage: React.FC = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
         style={{ marginBottom: '20px' }}
       />
-
+      <div>
+        {[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(letter => (
+          <Button
+            key={letter}
+            variant="outlined"
+            onClick={() => setSelectedLetter(letter)}
+            style={{ margin: '0 5px' }}
+          >
+            {letter}
+          </Button>
+        ))}
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setSelectedLetter(null);
+            setSearchTerm(''); // Clear search term when clearing letter filter
+          }}
+          style={{ marginLeft: '10px' }}
+        >
+          Clear Filter
+        </Button>
+      </div>
       <Button onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")} variant="contained" color="primary" style={{ marginBottom: '20px' }}>
         Toggle Sort Order ({sortOrder === "asc" ? "Ascending" : "Descending"})
       </Button>
-
       <Grid container spacing={2}>
         {sortedShows.length > 0 ? (
           sortedShows.map((show) => (
-            <Grid item key={show.id} xs={12} sm={6} md={4}>
+            <Grid item key={show.id} xs={12} sm={6} md={4} onClick={() => handleShowClick(show.id)}>
               <PreviewCard
                 show={{
                   ...show,
-                  genres: show.genres.map((id) => genreMapping[id]).filter(Boolean) // Map IDs to titles for display
+                  genres: show.genres.map((id) => genreMapping[id]).filter(Boolean)
                 }}
-                onDelete={() => handleDelete(show.id)}
-                onShare={() => handleShare(show)}
               />
             </Grid>
           ))
@@ -184,13 +182,6 @@ const HomePage: React.FC = () => {
           <p>No shows found.</p>
         )}
       </Grid>
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        message={snackbarMessage}
-      />
     </StyledContainer>
   );
 };

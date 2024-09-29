@@ -2,7 +2,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, } from 'react-router-dom';
 import HomePage from './Pages/HomePage';
-import SearchPage from './Pages/SearchPage';
 import ShowPage from './Pages/PodShows';
 import LoginPage from './Pages/Login';
 import SignUpPage from './Pages/Signup';
@@ -21,8 +20,8 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<PodshowsDisplay />} />
             <Route path="/HomePage" element={<HomePage />} />
-            <Route path="/SearchPage" element={<SearchPage />} />
-            <Route path="/id/:id" element={<ShowPage />} />
+            
+            <Route path="/shows/:id" element={<ShowPage />} />
             <Route path="/Login" element={<LoginPage />} />
             <Route path="/Signup" element={<SignUpPage />} />
             <Route path="/UserProfilePage" element={<ProfilePage />} />

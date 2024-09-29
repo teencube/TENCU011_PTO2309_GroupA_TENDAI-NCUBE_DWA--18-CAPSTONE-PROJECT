@@ -3,7 +3,7 @@ import { Card, CardContent, Typography } from '@mui/material';
 import styled from 'styled-components';
 
 
-const CardContainer = styled(Card)`
+const CardContainer = styled(Card)`z
   max-width: 200px; /* Reduced width */
   margin: 10px;
   background: linear-gradient(135deg, #3a3a3a, #1e1e1e); /* Darker gradient background */
@@ -43,7 +43,7 @@ interface Show {
 }
 
 
-const API_URL = 'https://podcast-api.netlify.app/shows';
+const API_URL = 'https://podcast-api.netlify.app/shows/id';
 
 const PodshowsDisplay: React.FC = () => {
   const [shows, setShows] = useState<Show[]>([]);
