@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-// Styled components for the card
+// Styled components for the card (unchanged)
 const CardContainer = styled.div`
   background: white;
   border: 1px solid #ddd;
@@ -82,7 +82,7 @@ const SeasonItem = styled.div`
   border-radius: 5px;
 `;
 
-// TypeScript interfaces
+// TypeScript interfaces (unchanged)
 interface Season {
   season: number;
   title: string;
@@ -103,10 +103,12 @@ interface Show {
 
 interface PreviewCardProps {
   show: Show;
+  isFavorite: boolean; // Add isFavorite property
+  onToggleFavorite: (showId: string) => Promise<void>; // Add onToggleFavorite property
 }
 
 // PreviewCard component
-const PreviewCard: React.FC<PreviewCardProps> = ({ show }) => {
+const PreviewCard: React.FC<PreviewCardProps> = ({ show, isFavorite, onToggleFavorite }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleDescription = () => {
@@ -129,6 +131,12 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ show }) => {
       <ActionButton onClick={toggleDescription}>
         {isExpanded ? 'See Less' : 'See More'} {/* Toggle button text */}
       </ActionButton>
+      
+      {/* Button to add or remove from favorites */}
+      <ActionButton onClick={() => onToggleFavorite(show.id)}>
+        {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+      </ActionButton>
+
       <Metadata>
         <MetadataItem>ID: {show.id}</MetadataItem>
         <MetadataItem>Updated: {new Date(show.updated).toLocaleDateString()}</MetadataItem>

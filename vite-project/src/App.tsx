@@ -20,7 +20,6 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<PodshowsDisplay />} />
             <Route path="/HomePage" element={<HomePage />} />
-            
             <Route path="/shows/:id" element={<ShowPage />} />
             <Route path="/Login" element={<LoginPage />} />
             <Route path="/Signup" element={<SignUpPage />} />

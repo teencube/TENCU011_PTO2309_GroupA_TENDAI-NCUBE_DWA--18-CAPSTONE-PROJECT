@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Typography } from '@mui/material';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import useAuth from '../Components/useAuth'; // Hook for authentication
 
-
-const CardContainer = styled(Card)`z
-  max-width: 200px; /* Reduced width */
+const CardContainer = styled(Card)`
+  max-width: 200px;
   margin: 10px;
-  background: linear-gradient(135deg, #3a3a3a, #1e1e1e); /* Darker gradient background */
+  background: linear-gradient(135deg, #3a3a3a, #1e1e1e);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
@@ -19,22 +20,21 @@ const CardContainer = styled(Card)`z
 `;
 
 const CustomCardMedia = styled('img')`
-  height: 150px; /* Adjust height if needed */
-  object-fit: cover; /* Ensure image covers the media area */
+  height: 150px;
+  object-fit: cover;
   width: 100%;
 `;
 
 const CustomCardContent = styled(CardContent)`
-  background: rgba(0, 0, 0, 0.8); /* Darker translucent background */
+  background: rgba(0, 0, 0, 0.8);
   padding: 16px;
   height: 80px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  color: #e0e0e0; /* Light text color for contrast */
-  text-align: center; /* Center align text */
+  color: #e0e0e0;
+  text-align: center;
 `;
-
 
 interface Show {
   id: string;
@@ -42,14 +42,15 @@ interface Show {
   title: string;
 }
 
-
 const API_URL = 'https://podcast-api.netlify.app/shows/id';
 
 const PodshowsDisplay: React.FC = () => {
   const [shows, setShows] = useState<Show[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-// useEffect hook to fetch shows when the component mounts
+  const navigate = useNavigate(); // Use navigate for redirection
+  const { user } = useAuth(); // Access user from Auth context
+
   useEffect(() => {
     const loadShows = async () => {
       try {
@@ -57,12 +58,11 @@ const PodshowsDisplay: React.FC = () => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        //Maping through data to structure it according to our Show Interface
         const data = await response.json();
         const fetchedShows: Show[] = data.map((item: Show) => ({
           id: item.id,
-          image: item.image, 
-          title: item.title, 
+          image: item.image,
+          title: item.title,
         }));
         setShows(fetchedShows);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -74,7 +74,17 @@ const PodshowsDisplay: React.FC = () => {
     };
 
     loadShows();
-  }, []);//ensures that effect runs  only once on mount
+  }, []);
+
+  const handleShowClick = (id: string) => {
+    if (!user) {
+      // If user is not authenticated, redirect to login/signup
+      navigate('/Login'); // Redirect to login page
+    } else {
+      // If user is authenticated, redirect to the show page
+      navigate(`/shows/${id}`);
+    }
+  };
 
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
@@ -85,17 +95,14 @@ const PodshowsDisplay: React.FC = () => {
         display: 'flex',
         flexWrap: 'wrap',
         justifyContent: 'center',
-        background: 'linear-gradient(180deg, #2e2e2e, #1a1a1a)', 
+        background: 'linear-gradient(180deg, #2e2e2e, #1a1a1a)',
         padding: '20px',
-        minHeight: '100vh', 
+        minHeight: '100vh',
       }}
     >
       {shows.map((show) => (
-        <CardContainer key={show.id}>
-          <CustomCardMedia
-            src={show.image}
-            alt={show.title}
-          />
+        <CardContainer key={show.id} onClick={() => handleShowClick(show.id)}>
+          <CustomCardMedia src={show.image} alt={show.title} />
           <CustomCardContent>
             <Typography variant="h6" component="div">
               {show.title}
