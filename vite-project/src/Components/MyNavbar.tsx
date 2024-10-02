@@ -44,7 +44,7 @@ const Navbar: React.FC = () => {
   };
 
   const handleLinkClick = () => {
-    setDrawerOpen(false); // Close the drawer when a link is clicked
+    setDrawerOpen(false); // Closes the drawer when a link is clicked
   };
 
   const pages: Page[] = [

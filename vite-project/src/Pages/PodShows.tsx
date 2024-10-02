@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { CircularProgress, Box } from '@mui/material';
 
-// Styled Components
+
 const Container = styled.div`
   padding: 20px;
 `;

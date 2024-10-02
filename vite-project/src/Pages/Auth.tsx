@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const login = async (email: string, password: string) => {
-    setError(null); // Reset error before attempting login
+    setError(null); // Resets error before attempting login
     try {
       const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
       if (loginError) throw new Error(loginError.message);
@@ -68,18 +68,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
-    setError(null); // Reset error before attempting logout
+    setError(null); // Resets error before attempting logout
     try {
       const { error: logoutError } = await supabase.auth.signOut();
       if (logoutError) throw new Error(logoutError.message);
-      setUser(null); // Clear user on logout
+      setUser(null); // Clears user on logout
     } catch (err) {
       console.error("Logout error:", err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
     }
   };
 
-  // Return context provider with user data and auth functions
+  // Returns context provider with user data and auth functions
   return (
     <AuthContext.Provider value={{ user, signUp, login, logout, loading, error }}>
       {loading ? <div>Loading...</div> : children}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography } from '@mui/material';
+import { Card, CardContent, Typography, Snackbar, Alert, Button } from '@mui/material';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import useAuth from '../Components/useAuth'; // Hook for authentication
+import { useNavigate } from 'react-router-dom';
+import useAuth from '../Components/useAuth';
 
 const CardContainer = styled(Card)`
   max-width: 200px;
@@ -42,32 +42,34 @@ interface Show {
   title: string;
 }
 
-const API_URL = 'https://podcast-api.netlify.app/shows/id';
+const API_URL = 'https://podcast-api.netlify.app/shows'; // Corrected endpoint
 
 const PodshowsDisplay: React.FC = () => {
   const [shows, setShows] = useState<Show[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate(); // Use navigate for redirection
-  const { user } = useAuth(); // Access user from Auth context
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // State for Snackbar visibility
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadShows = async () => {
       try {
-        const response = await fetch(API_URL);
+        const response: Response = await fetch(API_URL);
+
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error(`Network response was not ok: ${response.statusText}`);
         }
-        const data = await response.json();
-        const fetchedShows: Show[] = data.map((item: Show) => ({
-          id: item.id,
-          image: item.image,
-          title: item.title,
-        }));
-        setShows(fetchedShows);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+        const data: Show[] = await response.json(); 
+
+        setShows(data);
       } catch (error) {
-        setError('Failed to load shows');
+        if (error instanceof Error) {
+          setError(`Failed to load shows: ${error.message}`);
+        } else {
+          setError('An unknown error occurred.');
+        }
       } finally {
         setLoading(false);
       }
@@ -78,12 +80,24 @@ const PodshowsDisplay: React.FC = () => {
 
   const handleShowClick = (id: string) => {
     if (!user) {
-      // If user is not authenticated, redirect to login/signup
-      navigate('/Login'); // Redirect to login page
+      setSnackbarOpen(true); // Shows Snackbar if user is not authenticated
     } else {
-      // If user is authenticated, redirect to the show page
-      navigate(`/shows/${id}`);
+      navigate(`/shows/${id}`); // Redirects to the show page if authenticated
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  const handleLogin = () => {
+    navigate('/login'); // Navigates to login page
+    handleSnackbarClose(); // Closes Snackbar
+  };
+
+  const handleSignup = () => {
+    navigate('/signup'); // Navigates to signup page
+    handleSnackbarClose(); // Closes Snackbar
   };
 
   if (loading) return <Typography>Loading...</Typography>;
@@ -110,6 +124,31 @@ const PodshowsDisplay: React.FC = () => {
           </CustomCardContent>
         </CardContainer>
       ))}
+
+    
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity="warning" 
+          sx={{ width: '100%' }}
+          action={
+            <div>
+              <Button color="inherit" onClick={handleLogin}>
+                Login
+              </Button>
+              <Button color="inherit" onClick={handleSignup}>
+                Sign Up
+              </Button>
+            </div>
+          }
+        >
+          Please log in or sign up to view show details!
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

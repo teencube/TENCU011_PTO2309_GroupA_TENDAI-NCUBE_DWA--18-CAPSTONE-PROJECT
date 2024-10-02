@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-// Styled components for the card
+
 const CardContainer = styled.div`
   background: white;
   border: 1px solid #ddd;
@@ -145,7 +145,7 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ show, isFavorite, onToggleFav
         {show.language && <MetadataItem>Language: {show.language}</MetadataItem>}
       </Metadata>
 
-      {/* Display seasons if available */}
+      {/* Displays seasons  */}
       {show.seasons && (
         <SeasonList>
           {show.seasons.map((season) => (

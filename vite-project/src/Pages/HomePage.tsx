@@ -176,7 +176,7 @@ const HomePage: React.FC = () => {
           variant="outlined"
           onClick={() => {
             setSelectedLetter(null);
-            setSearchTerm(''); // Clear search term when clearing letter filter
+            setSearchTerm(''); // Clears search term when clearing letter filter
           }}
           style={{ marginLeft: '10px' }}
         >
@@ -195,8 +195,8 @@ const HomePage: React.FC = () => {
                   ...show,
                   genres: show.genres.map((id) => genreMapping[id]).filter(Boolean)
                 }}
-                isFavorite={favorites.includes(show.id)} // Check if this show is a favorite
-                onToggleFavorite={() => onToggleFavorite(show.id)} // Pass the toggle function
+                isFavorite={favorites.includes(show.id)} // Checks if this show is a favorite
+                onToggleFavorite={() => onToggleFavorite(show.id)} // Passes the toggle function
               />
               {/* Added Open Show button */}
               <Button 

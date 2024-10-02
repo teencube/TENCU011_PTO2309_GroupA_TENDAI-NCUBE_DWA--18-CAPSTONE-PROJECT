@@ -59,31 +59,31 @@ const ErrorMessage = styled.div`
 `;
 
 const FavoritesPage = () => {
-  const { user } = useAuth(); // Gets authorized user
+  const { user } = useAuth(); 
   const [favorites, setFavorites] = useState<Show[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  // Fetch favorites from Supabase
+  // Fetches favorites from Supabase
   useEffect(() => {
     const fetchFavorites = async () => {
       if (!user) {
         setLoading(false);
-        return; // If user is null, do nothing.
+        return; 
       }
 
       try {
         const { data, error } = await supabase
           .from('favorites')
           .select('*')
-          .eq('user-id', user.id); // Kept key name as user-id
+          .eq('user-id', user.id); 
 
         if (error) throw new Error(error.message);
 
         const updatedData: Show[] = data.map((show) => ({
-          id: show['show-id'], // Kept key name as show-id
+          id: show['show-id'],
           image: show.image,
           title: show.title,
           description: show.description,
@@ -117,19 +117,19 @@ const FavoritesPage = () => {
 
     try {
       if (isAlreadyFavorite) {
-        // Remove from favorites
+        // Removes from favorites
         const { error } = await supabase
           .from('favorites')
           .delete()
-          .eq('user-id', user.id) // Kept key name as user-id
-          .eq('show-id', showId); // Kept key name as show-id
+          .eq('user-id', user.id) 
+          .eq('show-id', showId); 
 
         if (error) throw new Error(error.message);
 
         setFavorites(favorites.filter((fav) => fav.id !== showId));
         setSnackbarMessage('Removed from favorites.');
       } else {
-        // Add to favorites
+        // Adds to favorites
         const newFavorite = favorites.find((show) => show.id === showId);
 
         if (newFavorite) {
@@ -156,7 +156,7 @@ const FavoritesPage = () => {
     setSnackbarOpen(false);
   };
 
-  // Handle loading and error states
+  // Handles loading and error states
   if (loading) return <LoadingMessage>Loading favorites...</LoadingMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
