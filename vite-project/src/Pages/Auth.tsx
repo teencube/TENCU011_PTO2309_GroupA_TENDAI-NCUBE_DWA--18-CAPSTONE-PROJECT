@@ -9,7 +9,7 @@ interface AuthContextProps {
   signUp: (email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  loading: boolean; // Loading state to track session fetching
+  loading: boolean; 
   error: string | null; // To track errors
 }
 
@@ -18,7 +18,7 @@ export const AuthContext = React.createContext<AuthContextProps | undefined>(und
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // Tracks whether the session is being loaded
-  const [error, setError] = useState<string | null>(null); // State to handle errors
+  const [error, setError] = useState<string | null>(null); 
 
   // useEffect hook to handle fetching the session and listening for auth state changes
   useEffect(() => {
@@ -29,12 +29,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setUser(session?.user || null);
       }
-      setLoading(false); // Session check complete, set loading to false
+      setLoading(false); // Session check complete, set loading 
     };
 
     fetchSession();
 
-    // Set up an auth state change listener
+    //auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user || null);
     });
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Functions to sign up, login, and logout a user
   const signUp = async (email: string, password: string) => {
-    setError(null); // Reset error before attempting signup
+    setError(null); 
     try {
       const { error: signUpError } = await supabase.auth.signUp({ email, password });
       if (signUpError) throw new Error(signUpError.message);

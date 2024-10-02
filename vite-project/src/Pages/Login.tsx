@@ -5,7 +5,7 @@ import useAuth from '../Components/useAuth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'; // Import the eye icons
 
-// Animations
+
 const fadeIn = keyframes`
   0% {
     opacity: 0;
@@ -160,7 +160,7 @@ const LoginPage = () => {
       await login(email, password);
       navigate('/HomePage');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch (err) {
       // Error handling is now managed in the useAuth context
     }
   };
@@ -194,7 +194,7 @@ const LoginPage = () => {
               />
             </InputWrapper>
           </Label>
-          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {error && <ErrorMessage>{error}</ErrorMessage>} {/* Ensure error message is displayed */}
           <SubmitButton type="submit">Login</SubmitButton>
           <TextLink>
             Don't have an account?{' '}
