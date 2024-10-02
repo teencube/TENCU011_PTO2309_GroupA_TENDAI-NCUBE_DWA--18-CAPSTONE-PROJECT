@@ -1,6 +1,6 @@
 
-import React, { useState  } from 'react';
-import  useAuth  from '../Components/useAuth';
+import React, { useState } from 'react';
+import useAuth from '../Components/useAuth';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -64,6 +64,11 @@ const SubmitButton = styled.button`
   }
 `;
 
+const ErrorMessage = styled.p`
+  color: red;
+  margin: 10px 0;
+`;
+
 const TextLink = styled.p`
   margin-top: 20px;
   color: #555;
@@ -83,19 +88,23 @@ const LinkButton = styled.a`
 
 const SignUpPage = () => {
   const [username, setUsername] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState<number | string>();
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null); // State for error messages
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // Reset error message
     try {
-      await signUp(email, password ); 
+      await signUp(email, password);
       navigate('/Home');
     } catch (error) {
-      console.error('Sign up failed:', error);
+      // Specify the error type explicitly as an instance of Error
+      const err = error as Error;
+      setError(err.message || 'Sign up failed. Please try again.'); // Set error message
     }
   };
 
@@ -106,20 +115,41 @@ const SignUpPage = () => {
         <Form onSubmit={handleSignUp}>
           <Label>
             Username:
-            <Input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <Input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
           </Label>
           <Label>
             Phone Number:
-            <Input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
+            <Input
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              required
+            />
           </Label>
           <Label>
             Email:
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </Label>
           <Label>
             Password:
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </Label>
+          {error && <ErrorMessage>{error}</ErrorMessage>} {/* Display error message */}
           <SubmitButton type="submit">Sign Up</SubmitButton>
           <TextLink>
             Already have an account?{' '}

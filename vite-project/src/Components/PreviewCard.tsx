@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-// Styled components for the card (unchanged)
+// Styled components for the card
 const CardContainer = styled.div`
   background: white;
   border: 1px solid #ddd;
@@ -82,7 +82,7 @@ const SeasonItem = styled.div`
   border-radius: 5px;
 `;
 
-// TypeScript interfaces (unchanged)
+// TypeScript interfaces
 interface Season {
   season: number;
   title: string;
@@ -103,8 +103,8 @@ interface Show {
 
 interface PreviewCardProps {
   show: Show;
-  isFavorite: boolean; // Add isFavorite property
-  onToggleFavorite: (showId: string) => Promise<void>; // Add onToggleFavorite property
+  isFavorite: boolean;
+  onToggleFavorite: (showId: string) => Promise<void>;
 }
 
 // PreviewCard component
@@ -112,7 +112,7 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ show, isFavorite, onToggleFav
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleDescription = () => {
-    setIsExpanded(prev => !prev); // Toggle the expanded state
+    setIsExpanded(prev => !prev);
   };
 
   // Fallback for missing data
@@ -129,9 +129,9 @@ const PreviewCard: React.FC<PreviewCardProps> = ({ show, isFavorite, onToggleFav
         {isExpanded ? description : `${description.substring(0, 100)}...`}
       </Description>
       <ActionButton onClick={toggleDescription}>
-        {isExpanded ? 'See Less' : 'See More'} {/* Toggle button text */}
+        {isExpanded ? 'See Less' : 'See More'}
       </ActionButton>
-      
+
       {/* Button to add or remove from favorites */}
       <ActionButton onClick={() => onToggleFavorite(show.id)}>
         {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}

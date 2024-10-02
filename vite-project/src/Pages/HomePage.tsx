@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Container, Grid, CircularProgress, TextField, Button, Snackbar } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import PreviewCard from '../Components/PreviewCard';
 
@@ -51,8 +51,9 @@ const HomePage: React.FC = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchShows = async () => {
@@ -110,8 +111,27 @@ const HomePage: React.FC = () => {
     setSnackbarOpen(false);
   };
 
-  const handleShowClick = (id: string) => {
-    navigate(`/shows/${id}`); // Redirect to the show details page
+  const handleOpenShowClick = (id: string) => {
+    navigate(`/shows/${id}`); // Navigate to the show detail page
+  };
+
+  // function to toggle favorites
+  const onToggleFavorite = (showId: string): Promise<void> => {
+    return new Promise((resolve) => {
+      setFavorites((prevFavorites) => {
+        const updatedFavorites = prevFavorites.includes(showId)
+          ? prevFavorites.filter(id => id !== showId) // Removes from favorites
+          : [...prevFavorites, showId]; // Add to favorites
+
+        // If show was added to favorites, display snackbar
+        if (!prevFavorites.includes(showId)) {
+          setSnackbarOpen(true); // Open snackbar notification
+        }
+
+        resolve(); // Resolve the promise
+        return updatedFavorites;
+      });
+    });
   };
 
   if (loading) {
@@ -169,13 +189,24 @@ const HomePage: React.FC = () => {
       <Grid container spacing={2}>
         {sortedShows.length > 0 ? (
           sortedShows.map((show) => (
-            <Grid item key={show.id} xs={12} sm={6} md={4} onClick={() => handleShowClick(show.id)}>
+            <Grid item key={show.id} xs={12} sm={6} md={4}>
               <PreviewCard
                 show={{
                   ...show,
                   genres: show.genres.map((id) => genreMapping[id]).filter(Boolean)
                 }}
+                isFavorite={favorites.includes(show.id)} // Check if this show is a favorite
+                onToggleFavorite={() => onToggleFavorite(show.id)} // Pass the toggle function
               />
+              {/* Added Open Show button */}
+              <Button 
+                onClick={() => handleOpenShowClick(show.id)} 
+                variant="contained" 
+                color="primary" 
+                style={{ marginTop: '10px' }}
+              >
+                Open Show
+              </Button>
             </Grid>
           ))
         ) : (

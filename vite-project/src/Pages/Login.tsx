@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import useAuth from '../Components/useAuth'; 
+import useAuth from '../Components/useAuth';
 
 const Container = styled.div`
   display: flex;
@@ -82,22 +82,17 @@ const LinkButton = styled.a`
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { login } = useAuth(); 
+  const { login, error } = useAuth(); // Access login function and error state
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null); 
     try {
-      await login(username, password); 
+      await login(username, password);
       navigate('/HomePage'); 
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setErrorMessage(error.message); 
-      } else {
-        setErrorMessage('An unexpected error occurred'); 
-      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      // Error handling is now managed in the useAuth context
     }
   };
 
@@ -108,13 +103,23 @@ const LoginPage = () => {
         <Form onSubmit={handleLogin}>
           <Label>
             Username:
-            <Input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <Input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
           </Label>
           <Label>
             Password:
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </Label>
-          {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>} 
+          {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error message */}
           <SubmitButton type="submit">Login</SubmitButton>
           <TextLink>
             Don't have an account?{' '}

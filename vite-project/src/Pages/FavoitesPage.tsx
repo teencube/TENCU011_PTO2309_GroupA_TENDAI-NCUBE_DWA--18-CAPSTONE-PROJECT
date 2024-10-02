@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import Snackbar from '@mui/material/Snackbar';
 import supabase from '../SupabaseClient';
 import PreviewCard from '../Components/PreviewCard';
-import useAuth from '../Components/useAuth'; // Import the useAuth hook
+import useAuth from '../Components/useAuth'; 
 
 interface Show {
   id: string;
@@ -58,9 +58,8 @@ const ErrorMessage = styled.div`
   text-align: center;
 `;
 
-// FavoritesPage component
 const FavoritesPage = () => {
-  const { user } = useAuth(); // Get the authenticated user
+  const { user } = useAuth(); // Gets authorized user
   const [favorites, setFavorites] = useState<Show[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,12 +78,12 @@ const FavoritesPage = () => {
         const { data, error } = await supabase
           .from('favorites')
           .select('*')
-          .eq('user_id', user.id); // Access user.id safely after null check
+          .eq('user-id', user.id); // Kept key name as user-id
 
         if (error) throw new Error(error.message);
 
         const updatedData: Show[] = data.map((show) => ({
-          id: show.show_id,
+          id: show['show-id'], // Kept key name as show-id
           image: show.image,
           title: show.title,
           description: show.description,
@@ -122,8 +121,8 @@ const FavoritesPage = () => {
         const { error } = await supabase
           .from('favorites')
           .delete()
-          .eq('user_id', user.id) // Safely access user.id after null check
-          .eq('show_id', showId);
+          .eq('user-id', user.id) // Kept key name as user-id
+          .eq('show-id', showId); // Kept key name as show-id
 
         if (error) throw new Error(error.message);
 
@@ -136,7 +135,7 @@ const FavoritesPage = () => {
         if (newFavorite) {
           const { error } = await supabase
             .from('favorites')
-            .insert([{ user_id: user.id, show_id: newFavorite.id }]); // Safely access user.id
+            .insert([{ 'user-id': user.id, 'show-id': newFavorite.id }]); // Kept key names
 
           if (error) throw new Error(error.message);
 
